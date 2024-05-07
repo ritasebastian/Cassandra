@@ -25,6 +25,10 @@ tar -xvf apache-cassandra-4.0.12-bin.tar.gz
 sudo mv apache-cassandra-4.0.12 /opt/cassandra
 export PATH=/opt/cassandra/bin:$PATH:.
 
+# Starting Cassandra
+$cassandra
+
+
 Validation:
 
 [ec2-user@ip-172-31-4-24 ~]$ cqlsh
@@ -41,3 +45,51 @@ Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
 --  Address    Load       Tokens  Owns (effective)  Host ID                               Rack
 UN  127.0.0.1  69.08 KiB  16      100.0%            a6469831-3df6-4283-938e-257f4620cf3d  rack1
+
+# Sample Data Load
+
+[ec2-user@ip-172-31-5-172 ~]$ cat sample_data.csv
+ID,First_name,Middle_name,Last_name
+1,Arockia,Sebastian,Santiago
+2,Rita,Sebastian,Manipal
+3,Alan,Arockia,Sebastian
+4,Anne,Arockia,Sebastian
+5,Mamtha,Sebastian,Rita
+6,Sharmila,Sebastian,Rita
+
+
+CREATE KEYSPACE data
+ WITH REPLICATION = {  
+  'class' : 'NetworkTopologyStrategy',  
+  'datacenter1' : 1  
+  } ;
+
+
+CREATE TABLE data.Student_personal_data (  
+ID bigint PRIMARY KEY,  
+First_name text,  
+Middle_name text,
+Last_name text,    
+);
+
+COPY data.Student_personal_data (ID, First_name, Middle_name,Last_name) 
+FROM 'sample_data.csv' 
+WITH HEADER = TRUE;
+
+# Verifiy the data
+
+cqlsh> select * from data.Student_personal_data;
+
+ id | first_name | last_name | middle_name
+----+------------+-----------+-------------
+  2 |       Rita |   Manipal |   Sebastian
+  3 |       Alan | Sebastian |     Arockia
+  4 |       Anne | Sebastian |     Arockia
+  5 |     Mamtha |      Rita |   Sebastian
+  6 |   Sharmila |      Rita |   Sebastian
+  1 |    Arockia |  Santiago |   Sebastian
+
+(6 rows)
+
+cqlsh> drop table data.Student_personal_data;
+
