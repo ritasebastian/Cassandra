@@ -1,4 +1,4 @@
-# Open the port 9042
+# Open the port 9042 & Inter Connect 7000
 # Create big ec2 
 
 #######################
@@ -24,6 +24,18 @@ wget https://dlcdn.apache.org/cassandra/4.0.12/apache-cassandra-4.0.12-bin.tar.g
 tar -xvf apache-cassandra-4.0.12-bin.tar.gz
 sudo mv apache-cassandra-4.0.12 /opt/cassandra
 export PATH=/opt/cassandra/bin:$PATH:.
+
+mv /opt/cassandra/conf/cassandra.yaml /opt/cassandra/conf/cassandra.org
+
+# get a ip of ec2
+hostname -I
+ cat /opt/cassandra/conf/cassandra.yaml | grep seeds
+          # seeds is actually a comma-delimited list of addresses.
+          - seeds: "172.31.41.8,172.31.44.53,172.31.37.235:7000"
+
+
+# Setting listen_address to 0.0.0.0 is always wrong.
+listen_address: 172.31.41.8
 
 # Starting Cassandra
 $cassandra
@@ -93,3 +105,14 @@ cqlsh> select * from data.Student_personal_data;
 
 cqlsh> drop table data.Student_personal_data;
 
+
+
+[ec2-user@ip-172-31-37-235 ~]$ nodetool status
+Datacenter: datacenter1
+=======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address        Load       Tokens  Owns (effective)  Host ID                               Rack
+UN  172.31.37.235  69.06 KiB  16      61.5%             cb4a26be-f36e-43cf-b020-5237fefdac3e  rack1
+UN  172.31.44.53   69.06 KiB  16      73.2%             ab92df60-ed4d-4403-91b7-05e6b1b93b88  rack1
+UN  172.31.41.8    69.06 KiB  16      65.2%             ca4aad31-9bde-4c7b-9844-b8c140a43169  rack1
